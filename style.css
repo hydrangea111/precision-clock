@@ -113,3 +113,7 @@ body.full .panel.view .pill:not(.main) { font-size: 1.1rem; }
 body.full .panel.view .inputs input { font-size: 1.4rem; text-align: center; }
 body.full .panel.view .laps { text-align: left; height: 18vh; max-height: none; width: min(90vw, 44rem); margin: 0; font-size: 1rem; }
 body.full .panel.view.flash { background: #ffe4e6; }
+
+.dec { display: flex; align-items: center; justify-content: center; gap: 0.6rem; font-size: 0.8rem; color: #64748b; }
+.seg { display: flex; gap: 0.3rem; }
+.pill.sm[aria-checked="true"] { color: #fff; background: #2563eb; }

@@ -173,11 +173,20 @@ function fmtDur(ms) {
 /* ---------- clock ---------- */
 let curSec = -1, secText = '';
 const elClock = $('clock-time');
+let decimals = Math.min(3, Math.max(0, Number(localStorage.getItem('decimals') ?? 3)));
+document.querySelectorAll('[data-dec]').forEach(b => {
+  const mark = () => b.setAttribute('aria-checked', +b.dataset.dec === decimals);
+  mark();
+  b.addEventListener('click', () => {
+    decimals = +b.dataset.dec; localStorage.setItem('decimals', decimals);
+    document.querySelectorAll('[data-dec]').forEach(x => x.setAttribute('aria-checked', +x.dataset.dec === decimals));
+  });
+});
 function renderClock() {
   const tn = trueNow(), s = Math.floor(tn / 1000);
   if (s !== curSec) {                               // heavy Intl work only once per second
     curSec = s;
-    secText = fmtTime.format(s * 1000) + '.';
+    secText = fmtTime.format(s * 1000);
     $('clock-date').textContent = fmtDate.format(s * 1000);
     if (s % 60 === 0 || !$('clock-tz').dataset.off) {
       const z = fmtZone.formatToParts(s * 1000).find(p => p.type === 'timeZoneName');
@@ -185,7 +194,8 @@ function renderClock() {
       $('clock-tz').textContent = `${tz} (${z ? z.value : ''}) · ${t(tzSource)}`;
     }
   }
-  elClock.textContent = secText + p3(Math.floor(tn - s * 1000));
+  const ms = p3(Math.floor(tn - s * 1000));        // truncate, never round up
+  elClock.textContent = decimals ? secText + '.' + ms.slice(0, decimals) : secText;
 }
 
 /* ---------- input helper: act on the *press*, timestamped by the event itself ---------- */
