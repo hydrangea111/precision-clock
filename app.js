@@ -180,22 +180,31 @@ function renderStatus() {
 /* ---------- formatting ---------- */
 const p2 = n => (n < 10 ? '0' : '') + n;
 const p3 = n => (n < 10 ? '00' : n < 100 ? '0' : '') + n;
-function fmtDur(ms) {
-  const x = Math.floor(ms < 0 ? 0 : ms);
-  return `${p2(Math.floor(x / 3600000))}:${p2(Math.floor(x / 60000) % 60)}:${p2(Math.floor(x / 1000) % 60)}.${p3(x % 1000)}`;
+// d = digits after the decimal point (0-3). Display only: callers always keep full-resolution ms.
+// Stopwatch truncates (like the clock); the countdown rounds up so it never shows 0 before it ends.
+function fmtDur(ms, d = 3, up = false) {
+  const unit = 10 ** (3 - d);
+  const x = (up ? Math.ceil : Math.floor)((ms < 0 ? 0 : ms) / unit) * unit;
+  return `${p2(Math.floor(x / 3600000))}:${p2(Math.floor(x / 60000) % 60)}:${p2(Math.floor(x / 1000) % 60)}` +
+         (d ? '.' + p3(x % 1000).slice(0, d) : '');
 }
 
 /* ---------- clock ---------- */
 let curSec = -1, secText = '';
 const elClock = $('clock-time');
-let decimals = Math.min(3, Math.max(0, Number(localStorage.getItem('decimals') ?? 3)));
+// each view keeps its own number of decimals (display only)
+const DEC_KEYS = { clock: 'decimals', sw: 'decimals-sw', tm: 'decimals-tm' };
+const decs = {};
+for (const k in DEC_KEYS) decs[k] = Math.min(3, Math.max(0, Number(localStorage.getItem(DEC_KEYS[k]) ?? 3)));
+function decUI() {
+  $('dec-cur').textContent = decs[view];
+  document.querySelectorAll('#dec-menu [data-dec]').forEach(li => li.setAttribute('aria-selected', +li.dataset.dec === decs[view]));
+}
 function setDec(d) {
-  decimals = d; localStorage.setItem('decimals', d);
-  $('dec-cur').textContent = d;
-  document.querySelectorAll('#dec-menu [data-dec]').forEach(li => li.setAttribute('aria-selected', +li.dataset.dec === d));
+  decs[view] = d; localStorage.setItem(DEC_KEYS[view], d); decUI();
+  swRender(performance.now()); tmRender(performance.now()); renderLaps();   // refresh frozen values immediately
 }
 dropdown($('dec-btn'), $('dec-menu'), li => setDec(+li.dataset.dec));
-setDec(decimals);
 function renderClock() {
   const tn = trueNow(), s = Math.floor(tn / 1000);
   if (s !== curSec) {                               // heavy Intl work only once per second
@@ -209,7 +218,7 @@ function renderClock() {
     }
   }
   const ms = p3(Math.floor(tn - s * 1000));        // truncate, never round up
-  elClock.textContent = decimals ? secText + '.' + ms.slice(0, decimals) : secText;
+  elClock.textContent = decs.clock ? secText + '.' + ms.slice(0, decs.clock) : secText;
 }
 
 /* ---------- input helper: act on the *press*, timestamped by the event itself ---------- */
@@ -232,7 +241,7 @@ function showView(k) {
   ORDER.forEach(n => panels[n].classList.toggle('view', n === k));
   select(panels[k]);
   document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-selected', b.dataset.view === k));
-  $('dec-wrap').hidden = k !== 'clock';             // decimals only apply to the clock
+  decUI();
   curSec = -1;                                      // refresh clock texts
 }
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
@@ -245,8 +254,13 @@ $('full-toggle').addEventListener('click', () => {
 const sw = { running: false, t0: 0, acc: 0, laps: [] };
 const swEl = $('sw-time');
 const swElapsed = ts => sw.acc + (sw.running ? ts - sw.t0 : 0);
+const swRender = now => { swEl.textContent = fmtDur(swElapsed(now), decs.sw); };
+function renderLaps() {                              // newest first; rebuilt so a decimals change also applies here
+  $('sw-laps').innerHTML = sw.laps.slice().reverse()
+    .map(l => `<li><span>${fmtDur(l.split, decs.sw)}</span> &nbsp; ${fmtDur(l.total, decs.sw)}</li>`).join('');
+}
 function swToggle(ts) {
-  if (sw.running) { sw.acc += ts - sw.t0; sw.running = false; swEl.textContent = fmtDur(sw.acc); }
+  if (sw.running) { sw.acc += ts - sw.t0; sw.running = false; swRender(0); }
   else { sw.t0 = ts; sw.running = true; }
   swSync();
 }
@@ -254,13 +268,11 @@ function swLap(ts) {
   if (!sw.running) return;
   const cur = swElapsed(ts), prev = sw.laps.length ? sw.laps[sw.laps.length - 1].total : 0;
   sw.laps.push({ total: cur, split: cur - prev });
-  const li = document.createElement('li');
-  li.innerHTML = `<span>${fmtDur(cur - prev)}</span> &nbsp; ${fmtDur(cur)}`;
-  $('sw-laps').prepend(li);
+  renderLaps();
 }
 function swReset() {
   if (sw.running) return;
-  sw.acc = 0; sw.laps = []; $('sw-laps').innerHTML = ''; swEl.textContent = fmtDur(0);
+  sw.acc = 0; sw.laps = []; renderLaps(); swRender(0);
 }
 function swSync() {
   const b = $('sw-toggle'); b.textContent = t(sw.running ? 'stop' : 'start'); b.classList.toggle('running', sw.running);
@@ -275,6 +287,7 @@ const tmEl = $('tm-time');
 let audio = null;
 const tmInput = () => ((+$('tm-h').value || 0) * 3600 + (+$('tm-m').value || 0) * 60 + (+$('tm-s').value || 0)) * 1000;
 const tmRemaining = ts => tm.remaining - (tm.running ? ts - tm.t0 : 0);
+const tmRender = now => { tmEl.textContent = fmtDur(Math.max(0, tmRemaining(now)), decs.tm, true); };
 function warmAudio() {                               // start the audio device early so it has no start-up lag later
   try {
     audio = audio || new (window.AudioContext || window.webkitAudioContext)();
@@ -300,7 +313,7 @@ function scheduleAlarm(perfTarget) {                // beeps on the audio clock,
 }
 function cancelAlarm() { tm.nodes.forEach(o => { try { o.stop(); o.disconnect(); } catch (e) {} }); tm.nodes = []; }
 function tmToggle(ts) {
-  if (tm.running) { tm.remaining -= ts - tm.t0; tm.running = false; cancelAlarm(); tmEl.textContent = fmtDur(tm.remaining); }
+  if (tm.running) { tm.remaining -= ts - tm.t0; tm.running = false; cancelAlarm(); tmRender(0); }
   else {
     if (tm.remaining <= 0) tm.remaining = tmInput();
     if (tm.remaining <= 0) return;
@@ -310,7 +323,7 @@ function tmToggle(ts) {
 }
 function tmReset() {
   if (tm.running) return;
-  cancelAlarm(); tm.remaining = tmInput(); tmEl.textContent = fmtDur(tm.remaining); tmEl.parentElement.classList.remove('flash');
+  cancelAlarm(); tm.remaining = tmInput(); tmRender(0); tmEl.parentElement.classList.remove('flash');
 }
 function tmSync() {
   const b = $('tm-toggle'); b.textContent = t(tm.running ? 'stop' : 'start'); b.classList.toggle('running', tm.running);
@@ -342,13 +355,13 @@ addEventListener('keyup', e => { if (e.code === 'Space' && !typing(e)) e.prevent
 function frame() {
   const now = performance.now();
   renderClock();
-  if (sw.running) swEl.textContent = fmtDur(swElapsed(now));
+  if (sw.running) swRender(now);
   if (tm.running) {
     const r = tmRemaining(now);
     if (r <= 0) {
-      tm.running = false; tm.remaining = 0; tmEl.textContent = fmtDur(0);
+      tm.running = false; tm.remaining = 0; tmRender(0);
       tmEl.parentElement.classList.add('flash'); tmSync();
-    } else tmEl.textContent = fmtDur(r);
+    } else tmRender(now);
   }
   requestAnimationFrame(frame);
 }
@@ -356,6 +369,7 @@ function frame() {
 /* ---------- start ---------- */
 applyLang();
 showView('clock');
+swRender(0); tmRender(0);
 sync();
 setInterval(sync, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
