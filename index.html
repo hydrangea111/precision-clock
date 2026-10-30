@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정밀 시계</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%232563eb'/%3E%3Ccircle%20cx='32'%20cy='33'%20r='19'%20fill='none'%20stroke='white'%20stroke-width='4'/%3E%3Cpath%20d='M32%2020v14l9%205'%20fill='none'%20stroke='white'%20stroke-width='4'%20stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <h1 data-i18n="title">정밀 시계</h1>
+    <div class="lang" role="tablist" aria-label="Language">
+      <button class="pill" role="tab" data-lang="ko">한국어</button>
+      <button class="pill" role="tab" data-lang="en">English</button>
+      <button class="pill" role="tab" data-lang="ja">日本語</button>
+      <button class="pill" role="tab" data-lang="zh">中文</button>
+    </div>
+  </div>
+
+  <main>
+    <section class="panel" id="p-clock">
+      <h2 data-i18n="clock">시계</h2>
+      <div class="time" id="clock-time">--:--:--.---</div>
+      <div class="sub" id="clock-date">&nbsp;</div>
+      <div class="sub" id="clock-tz">&nbsp;</div>
+      <div class="sub" id="clock-loc">&nbsp;</div>
+      <button class="pill sm" id="gps" data-i18n="useGps">GPS로 현재 위치 확인</button>
+      <div class="status" id="sync-status"></div>
+    </section>
+
+    <section class="panel active" id="p-sw">
+      <h2 data-i18n="stopwatch">스톱워치</h2>
+      <div class="time" id="sw-time">00:00:00.000</div>
+      <div class="row">
+        <button class="pill main" id="sw-toggle" data-i18n="start">시작</button>
+        <button class="pill" id="sw-lap" data-i18n="lap">랩</button>
+        <button class="pill" id="sw-reset" data-i18n="reset">초기화</button>
+      </div>
+      <ol class="laps" id="sw-laps"></ol>
+    </section>
+
+    <section class="panel" id="p-tm">
+      <h2 data-i18n="timer">타이머</h2>
+      <div class="time" id="tm-time">00:05:00.000</div>
+      <div class="row inputs">
+        <label><input id="tm-h" type="number" min="0" max="99" value="0"><span data-i18n="hours">시</span></label>
+        <label><input id="tm-m" type="number" min="0" max="59" value="5"><span data-i18n="minutes">분</span></label>
+        <label><input id="tm-s" type="number" min="0" max="59" value="0"><span data-i18n="seconds">초</span></label>
+      </div>
+      <div class="row">
+        <button class="pill main" id="tm-toggle" data-i18n="start">시작</button>
+        <button class="pill" id="tm-reset" data-i18n="reset">초기화</button>
+      </div>
+    </section>
+  </main>
+
+  <footer data-i18n="hint"></footer>
+</div>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
