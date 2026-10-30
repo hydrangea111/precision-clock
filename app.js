@@ -133,17 +133,25 @@ function buildFormatters() {
   fmtZone = new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : lang, { ...o, timeZoneName: 'longOffset' });
   curSec = -1;
 }
+// Offline fallback: 15° of longitude per hour (nautical time zones). Ignores political borders and DST.
+function lonZone(lon) {
+  const h = Math.max(-12, Math.min(12, Math.round(lon / 15)));
+  return h === 0 ? 'Etc/GMT' : `Etc/GMT${h > 0 ? '-' : '+'}${Math.abs(h)}`;   // POSIX-style sign is inverted
+}
 function locateGps() {
   if (!navigator.geolocation) { gpsState = 'gpsDenied'; renderLoc(); return; }
   gpsState = 'gpsWait'; renderLoc();
   navigator.geolocation.getCurrentPosition(async pos => {
     const { latitude, longitude, accuracy } = pos.coords;
     loc = { latitude, longitude, accuracy };
+    let zone = null;
     try {
-      const r = await fetch(`${API_COORD}?latitude=${latitude}&longitude=${longitude}`);
-      const j = await r.json();
-      if (j.timeZone) { tz = j.timeZone; tzSource = 'gpsTz'; buildFormatters(); }
-    } catch (e) { /* keep device time zone */ }
+      const r = await fetch(`${API_COORD}?latitude=${latitude}&longitude=${longitude}`, { signal: AbortSignal.timeout(6000) });
+      if (r.ok) zone = (await r.json()).timeZone || null;
+    } catch (e) { /* lookup unavailable → approximate from longitude */ }
+    if (zone) { tz = zone; tzSource = 'gpsTz'; }
+    else { tz = lonZone(longitude); tzSource = 'gpsLon'; }
+    buildFormatters();
     gpsState = ''; renderLoc();
   }, () => { gpsState = 'gpsDenied'; renderLoc(); }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 }
