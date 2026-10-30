@@ -112,7 +112,6 @@ body.full .panel.view .pill.main { font-size: 1.4rem; padding: 1.2rem 1rem; }
 body.full .panel.view .pill:not(.main) { font-size: 1.1rem; }
 body.full .panel.view .inputs input { font-size: 1.4rem; text-align: center; }
 body.full .panel.view .laps { text-align: left; height: 18vh; max-height: none; width: min(90vw, 44rem); margin: 0; font-size: 1rem; }
-body.full .panel.view.flash { background: #ffe4e6; }
 
 .menu.narrow { min-width: 5rem; }
 .menu.narrow li { text-align: center; }
@@ -143,6 +142,5 @@ html[data-theme="dark"] .inputs input { color: #f1f5f9; background: #0f172a; bor
 html[data-theme="dark"] .status.ok b { color: #4ade80; }
 html[data-theme="dark"] .status.bad b { color: #fbbf24; }
 html[data-theme="dark"] body.full .card, html[data-theme="dark"] body.full .panel.view { background: #0f172a; }
-html[data-theme="dark"] body.full .panel.view.flash { background: #4c0519; }
 html[data-theme="dark"] .flash { animation-name: flash-dark; }
 @keyframes flash-dark { 50% { background: #4c0519; border-color: #9f1239; } }
