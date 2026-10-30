@@ -250,11 +250,20 @@ const tmEl = $('tm-time');
 let audio = null;
 const tmInput = () => ((+$('tm-h').value || 0) * 3600 + (+$('tm-m').value || 0) * 60 + (+$('tm-s').value || 0)) * 1000;
 const tmRemaining = ts => tm.remaining - (tm.running ? ts - tm.t0 : 0);
-function scheduleAlarm(inMs) {                      // sample-accurate beeps on the audio clock
+function warmAudio() {                               // start the audio device early so it has no start-up lag later
   try {
     audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-    audio.resume();
-    const at = audio.currentTime + Math.max(0, inMs) / 1000;
+    if (audio.state !== 'running') audio.resume();
+  } catch (e) { /* audio unavailable */ }
+}
+['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, warmAudio, { once: true, capture: true }));
+function scheduleAlarm(perfTarget) {                // beeps on the audio clock, aimed at a performance.now() instant
+  try {
+    warmAudio();
+    const o = audio.getOutputTimestamp ? audio.getOutputTimestamp() : null;
+    let at = o && o.performanceTime ? o.contextTime + (perfTarget - o.performanceTime) / 1000
+                                    : audio.currentTime + (perfTarget - performance.now()) / 1000;
+    at = Math.max(at, audio.currentTime);
     tm.nodes = [0, 0.3, 0.6, 0.9, 1.2].map(d => {
       const o = audio.createOscillator(), g = audio.createGain();
       o.frequency.value = 1000; o.connect(g); g.connect(audio.destination);
@@ -270,7 +279,7 @@ function tmToggle(ts) {
   else {
     if (tm.remaining <= 0) tm.remaining = tmInput();
     if (tm.remaining <= 0) return;
-    tm.t0 = ts; tm.running = true; scheduleAlarm(tm.remaining - (performance.now() - ts));
+    tm.t0 = ts; tm.running = true; scheduleAlarm(ts + tm.remaining);
   }
   tmEl.parentElement.classList.remove('flash'); tmSync();
 }

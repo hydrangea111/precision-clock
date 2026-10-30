@@ -111,5 +111,5 @@ body.full .panel.view .row { width: min(90vw, 44rem); }
 body.full .panel.view .pill.main { font-size: 1.4rem; padding: 1.2rem 1rem; }
 body.full .panel.view .pill:not(.main) { font-size: 1.1rem; }
 body.full .panel.view .inputs input { font-size: 1.4rem; text-align: center; }
-body.full .panel.view .laps { text-align: left; max-height: 18vh; font-size: 1rem; }
+body.full .panel.view .laps { text-align: left; height: 18vh; max-height: none; width: min(90vw, 44rem); margin: 0; font-size: 1rem; }
 body.full .panel.view.flash { background: #ffe4e6; }

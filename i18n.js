@@ -1,7 +1,7 @@
 const I18N = {
-  ko: { title: '정밀 시계', clock: '시계', stopwatch: '스톱워치', timer: '타이머', start: '시작', stop: '정지', lap: '랩', reset: '초기화',
+  ko: { title: '정밀 시계', clock: '시계', stopwatch: '스톱워치', timer: '타이머', start: '시작', stop: '정지', lap: '구간 기록', reset: '초기화',
         hours: '시', minutes: '분', seconds: '초', useGps: 'GPS로 현재 위치 확인',
-        hint: '스페이스바 또는 마우스를 누르는 즉시 선택된(파란 테두리) 패널이 시작/정지됩니다 · L 랩 · R 초기화 · ←→ 전환',
+        hint: '스페이스바 또는 마우스를 누르는 즉시 선택된(파란 테두리) 패널이 시작/정지됩니다 · L 구간 기록 · R 초기화 · ←→ 전환',
         syncing: '시각 동기화 중…', synced: '동기화됨', uncertainty: '오차 범위', offline: '네트워크 시각을 가져오지 못해 기기 시계를 사용 중',
         samples: '샘플', sources: '소스', deviceTz: '기기 시간대', gpsTz: 'GPS 위치 기준', gpsDenied: 'GPS 사용 불가 – 기기 시간대 사용', gpsWait: 'GPS 확인 중…', offsetLbl: '기기 시계 차이', accuracy: '위치 정확도' },
   en: { title: 'Precision Clock', clock: 'Clock', stopwatch: 'Stopwatch', timer: 'Timer', start: 'Start', stop: 'Stop', lap: 'Lap', reset: 'Reset',
