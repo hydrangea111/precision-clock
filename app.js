@@ -63,10 +63,12 @@ async function headerSample(prior, rtt) {
   const r = await fetch(location.pathname + '?_=' + Math.random(), { method: 'HEAD', cache: 'no-store' });
   const t1 = performance.now();
   const d = r.headers.get('date');
-  const age = Number(r.headers.get('age') || 0);
-  if (!d || age) return null;                       // cached response → Date is stale
+  if (!d) return null;
   const S = Date.parse(d);
-  return [S - (ORIGIN + t1), S + 1000 - (ORIGIN + t0)];
+  const iv = [S - (ORIGIN + t1), S + 1000 - (ORIGIN + t0)];
+  // CDNs may replay a cached Date; reject anything far from the current estimate
+  if (prior != null && Math.abs((iv[0] + iv[1]) / 2 - prior) > 1500) return null;
+  return iv;
 }
 
 let syncing = false;
