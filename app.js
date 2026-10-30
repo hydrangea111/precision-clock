@@ -21,13 +21,15 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   swSync(); tmSync(); renderStatus(); renderLoc();
 }
-const langMenu = $('lang-menu'), langBtn = $('lang-btn');
-const setMenu = open => { langMenu.hidden = !open; langBtn.setAttribute('aria-expanded', open); };
-langBtn.addEventListener('click', e => { e.stopPropagation(); setMenu(langMenu.hidden); });
-document.addEventListener('click', () => setMenu(false));
-langMenu.querySelectorAll('[data-lang]').forEach(li => li.addEventListener('click', () => {
-  lang = li.dataset.lang; localStorage.setItem('lang', lang); setMenu(false); applyLang();
-}));
+const menus = [];
+function dropdown(btn, menu, onPick) {
+  const set = open => { menu.hidden = !open; btn.setAttribute('aria-expanded', open); };
+  menus.push(set);
+  btn.addEventListener('click', e => { e.stopPropagation(); const o = menu.hidden; menus.forEach(f => f(false)); set(o); });
+  menu.querySelectorAll('li').forEach(li => li.addEventListener('click', () => { set(false); onPick(li); }));
+}
+document.addEventListener('click', () => menus.forEach(f => f(false)));
+dropdown($('lang-btn'), $('lang-menu'), li => { lang = li.dataset.lang; localStorage.setItem('lang', lang); applyLang(); });
 
 /* ---------- time base ----------
    Everything runs on performance.now() (monotonic, sub-ms). `offset` = true UTC - (ORIGIN + performance.now()). */
@@ -174,14 +176,13 @@ function fmtDur(ms) {
 let curSec = -1, secText = '';
 const elClock = $('clock-time');
 let decimals = Math.min(3, Math.max(0, Number(localStorage.getItem('decimals') ?? 3)));
-document.querySelectorAll('[data-dec]').forEach(b => {
-  const mark = () => b.setAttribute('aria-checked', +b.dataset.dec === decimals);
-  mark();
-  b.addEventListener('click', () => {
-    decimals = +b.dataset.dec; localStorage.setItem('decimals', decimals);
-    document.querySelectorAll('[data-dec]').forEach(x => x.setAttribute('aria-checked', +x.dataset.dec === decimals));
-  });
-});
+function setDec(d) {
+  decimals = d; localStorage.setItem('decimals', d);
+  $('dec-cur').textContent = d;
+  document.querySelectorAll('#dec-menu [data-dec]').forEach(li => li.setAttribute('aria-selected', +li.dataset.dec === d));
+}
+dropdown($('dec-btn'), $('dec-menu'), li => setDec(+li.dataset.dec));
+setDec(decimals);
 function renderClock() {
   const tn = trueNow(), s = Math.floor(tn / 1000);
   if (s !== curSec) {                               // heavy Intl work only once per second
@@ -218,6 +219,7 @@ function showView(k) {
   ORDER.forEach(n => panels[n].classList.toggle('view', n === k));
   select(panels[k]);
   document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-selected', b.dataset.view === k));
+  $('dec-wrap').hidden = k !== 'clock';             // decimals only apply to the clock
   curSec = -1;                                      // refresh clock texts
 }
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));

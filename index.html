@@ -17,6 +17,18 @@
       <button class="pill" role="tab" data-view="tm" data-i18n="timer">타이머</button>
     </div>
     <div class="right">
+      <div class="lang" id="dec-wrap">
+        <button class="pill" id="dec-btn" aria-haspopup="listbox" aria-expanded="false">
+          <span><span data-i18n="decimals">소수점</span> <b id="dec-cur">3</b></span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg>
+        </button>
+        <ul class="menu narrow" id="dec-menu" role="listbox" hidden>
+          <li role="option" data-dec="0">0</li>
+          <li role="option" data-dec="1">1</li>
+          <li role="option" data-dec="2">2</li>
+          <li role="option" data-dec="3">3</li>
+        </ul>
+      </div>
       <div class="lang">
         <button class="pill" id="lang-btn" aria-haspopup="listbox" aria-expanded="false">
           <span id="lang-cur">한국어</span>
@@ -42,14 +54,6 @@
       <div class="sub" id="clock-date">&nbsp;</div>
       <div class="sub" id="clock-tz">&nbsp;</div>
       <div class="sub" id="clock-loc">&nbsp;</div>
-      <div class="dec"><span data-i18n="decimals">소수점</span>
-        <div class="seg" id="dec-seg" role="radiogroup">
-          <button class="pill sm" role="radio" data-dec="0">0</button>
-          <button class="pill sm" role="radio" data-dec="1">1</button>
-          <button class="pill sm" role="radio" data-dec="2">2</button>
-          <button class="pill sm" role="radio" data-dec="3">3</button>
-        </div>
-      </div>
       <button class="pill sm" id="gps" data-i18n="useGps">GPS로 현재 위치 확인</button>
       <div class="status" id="sync-status"></div>
     </section>
