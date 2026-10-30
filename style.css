@@ -101,7 +101,7 @@ body.full main { flex: 1; display: flex; min-height: 0; }
 body.full .panel { display: none; }
 body.full .panel.view {
     display: flex; flex: 1; border: 0; background: #fff; border-radius: 0;
-    align-items: center; justify-content: center; text-align: center; gap: 1.2rem; overflow: auto;
+    align-items: center; justify-content: flex-start; padding: 14vh 0 0; text-align: center; gap: 1.2rem; overflow: auto; scrollbar-gutter: stable both-edges;
 }
 body.full .panel.view .head { display: none; }
 body.full .panel.view .time { font-size: min(12vw, 30vh); padding: 0; cursor: default; line-height: 1.1; }
