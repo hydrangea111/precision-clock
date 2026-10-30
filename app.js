@@ -31,6 +31,11 @@ function dropdown(btn, menu, onPick) {
 document.addEventListener('click', () => menus.forEach(f => f(false)));
 dropdown($('lang-btn'), $('lang-menu'), li => { lang = li.dataset.lang; localStorage.setItem('lang', lang); applyLang(); });
 
+/* ---------- theme: follows the device setting live ---------- */
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+  document.documentElement.dataset.theme = e.matches ? 'dark' : 'light';
+});
+
 /* ---------- time base ----------
    Everything runs on performance.now() (monotonic, sub-ms). `offset` = true UTC - (ORIGIN + performance.now()). */
 let offset = 0, uncertainty = Infinity, synced = false, nSamples = 0, srcNames = [];

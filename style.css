@@ -117,3 +117,32 @@ body.full .panel.view.flash { background: #ffe4e6; }
 .menu.narrow { min-width: 5rem; }
 .menu.narrow li { text-align: center; }
 .pill b { font-variant-numeric: tabular-nums; }
+
+/* 다크 모드 */
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+html[data-theme="dark"] body { background: linear-gradient(135deg, #0b1120, #0f172a); color: #e2e8f0; }
+html[data-theme="dark"] .card { background: #1e293b; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4); }
+html[data-theme="dark"] h1 { color: #f1f5f9; }
+html[data-theme="dark"] h2, html[data-theme="dark"] .sub, html[data-theme="dark"] .status,
+html[data-theme="dark"] footer, html[data-theme="dark"] .inputs label, html[data-theme="dark"] .laps { color: #94a3b8; }
+html[data-theme="dark"] .laps li span { color: #f1f5f9; }
+html[data-theme="dark"] .pill { color: #cbd5e1; background: #334155; }
+html[data-theme="dark"] .pill:hover { background: #475569; }
+html[data-theme="dark"] .pill[aria-selected="true"], html[data-theme="dark"] .pill.main { color: #fff; background: #2563eb; }
+html[data-theme="dark"] .pill.main:hover { background: #3b82f6; }
+html[data-theme="dark"] .pill.main.running { background: #e11d48; }
+html[data-theme="dark"] .pill.main.running:hover { background: #f43f5e; }
+html[data-theme="dark"] .menu { background: #1e293b; border-color: #475569; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+html[data-theme="dark"] .menu li { color: #cbd5e1; }
+html[data-theme="dark"] .menu li:hover { background: #334155; }
+html[data-theme="dark"] .menu li[aria-selected="true"] { background: #1e3a8a; color: #dbeafe; }
+html[data-theme="dark"] .panel { background: #1e293b; border-color: #334155; }
+html[data-theme="dark"] .panel.active { background: #172554; border-color: #1d4ed8; }
+html[data-theme="dark"] .inputs input { color: #f1f5f9; background: #0f172a; border-color: #334155; }
+html[data-theme="dark"] .status.ok b { color: #4ade80; }
+html[data-theme="dark"] .status.bad b { color: #fbbf24; }
+html[data-theme="dark"] body.full .card, html[data-theme="dark"] body.full .panel.view { background: #0f172a; }
+html[data-theme="dark"] body.full .panel.view.flash { background: #4c0519; }
+html[data-theme="dark"] .flash { animation-name: flash-dark; }
+@keyframes flash-dark { 50% { background: #4c0519; border-color: #9f1239; } }
