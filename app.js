@@ -13,12 +13,20 @@ const t = k => (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k;
 function applyLang() {
   document.documentElement.lang = lang;
   document.title = t('title');
-  document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-selected', b.dataset.lang === lang));
+  document.querySelectorAll('[data-lang]').forEach(b => {
+    const on = b.dataset.lang === lang;
+    b.setAttribute('aria-selected', on);
+    if (on) $('lang-cur').textContent = b.textContent;
+  });
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   swSync(); tmSync(); renderStatus(); renderLoc();
 }
-document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => {
-  lang = b.dataset.lang; localStorage.setItem('lang', lang); applyLang();
+const langMenu = $('lang-menu'), langBtn = $('lang-btn');
+const setMenu = open => { langMenu.hidden = !open; langBtn.setAttribute('aria-expanded', open); };
+langBtn.addEventListener('click', e => { e.stopPropagation(); setMenu(langMenu.hidden); });
+document.addEventListener('click', () => setMenu(false));
+langMenu.querySelectorAll('[data-lang]').forEach(li => li.addEventListener('click', () => {
+  lang = li.dataset.lang; localStorage.setItem('lang', lang); setMenu(false); applyLang();
 }));
 
 /* ---------- time base ----------
@@ -68,13 +76,14 @@ async function headerSample(prior, rtt) {
   const iv = [S - (ORIGIN + t1), S + 1000 - (ORIGIN + t0)];
   // CDNs may replay a cached Date; reject anything far from the current estimate
   if (prior != null && Math.abs((iv[0] + iv[1]) / 2 - prior) > 1500) return null;
+  iv.rtt = t1 - t0;
   return iv;
 }
 
 let syncing = false;
 async function sync() {
   if (syncing) return; syncing = true; renderStatus();
-  let api = null, hdr = null, n = 0, best = Infinity;
+  let api = null, hdr = null, n = 0, hdrRtt = 40;
   const combined = () => {
     if (api && hdr) { const o = overlap(api, hdr); return o || (api[1] - api[0] < hdr[1] - hdr[0] ? api : hdr); }
     return api || hdr;
@@ -82,26 +91,28 @@ async function sync() {
   const apply = () => {
     const iv = combined(); if (!iv) return;
     offset = (iv[0] + iv[1]) / 2; uncertainty = (iv[1] - iv[0]) / 2; synced = true; nSamples = n;
-    srcNames = [api && 'timeapi.io', hdr && location.host].filter(Boolean);
+    srcNames = [api && 'timeapi.io', hdr && 'HTTP Date'].filter(Boolean);
     renderStatus();
   };
   const sameOrigin = /^https?:$/.test(location.protocol);
   const apiLoop = async () => {
     for (let i = 0; i < 10; i++) {
       try {
-        const t0 = performance.now(); const iv = await apiSample();
-        best = Math.min(best, performance.now() - t0); api = addIv(api, iv); n++; apply();
+        const iv = await apiSample();
+        api = addIv(api, iv); n++; apply();
       } catch (e) { /* source unavailable */ }
       await wait(60);
     }
   };
   const hdrLoop = async () => {
     if (!sameOrigin) return;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 14; i++) {
       try {
         while (!api && i === 0) await wait(50);      // wait for a first estimate to aim at
-        const iv = await headerSample(offset, isFinite(best) ? best : 40);
-        if (iv) { hdr = addIv(hdr, iv); n++; apply(); }
+        const m = x => (x[0] + x[1]) / 2;
+        const aim = hdr ? m(api && overlap(api, hdr) || hdr) : offset;
+        const iv = await headerSample(aim, hdrRtt);
+        if (iv) { hdrRtt = i ? Math.min(hdrRtt, iv.rtt) : iv.rtt; hdr = addIv(hdr, iv); n++; apply(); }
       } catch (e) { /* ignore */ }
     }
   };
@@ -189,6 +200,22 @@ function select(p) {
 }
 Object.values(panels).forEach(p => p.addEventListener('pointerdown', () => select(p)));
 
+/* ---------- one view at a time (clock / stopwatch / timer) ---------- */
+const ORDER = ['clock', 'sw', 'tm'];
+let view = null;
+function showView(k) {
+  view = k;
+  ORDER.forEach(n => panels[n].classList.toggle('view', n === k));
+  select(panels[k]);
+  document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-selected', b.dataset.view === k));
+  curSec = -1;                                      // refresh clock texts
+}
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+$('full-toggle').addEventListener('click', () => {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+});
+
 /* ---------- stopwatch ---------- */
 const sw = { running: false, t0: 0, acc: 0, laps: [] };
 const swEl = $('sw-time');
@@ -263,6 +290,12 @@ tm.remaining = tmInput();
 const typing = e => /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
 addEventListener('keydown', e => {
   if (typing(e) || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  {
+    const i = ORDER.indexOf(view);
+    if (e.code === 'ArrowRight') { showView(ORDER[(i + 1) % 3]); return; }
+    if (e.code === 'ArrowLeft') { showView(ORDER[(i + 2) % 3]); return; }
+    if (/^Digit[1-3]$/.test(e.code)) { showView(ORDER[+e.code[5] - 1]); return; }
+  }
   if (e.code === 'Space') {
     e.preventDefault();
     if (active === 'sw') swToggle(e.timeStamp); else if (active === 'tm') tmToggle(e.timeStamp);
@@ -288,6 +321,7 @@ function frame() {
 
 /* ---------- start ---------- */
 applyLang();
+showView('clock');
 sync();
 setInterval(sync, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });

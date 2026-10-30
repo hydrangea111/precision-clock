@@ -7,21 +7,37 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%232563eb'/%3E%3Ccircle%20cx='32'%20cy='33'%20r='19'%20fill='none'%20stroke='white'%20stroke-width='4'/%3E%3Cpath%20d='M32%2020v14l9%205'%20fill='none'%20stroke='white'%20stroke-width='4'%20stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="full">
 <div class="card">
   <div class="top">
     <h1 data-i18n="title">정밀 시계</h1>
-    <div class="lang" role="tablist" aria-label="Language">
-      <button class="pill" role="tab" data-lang="ko">한국어</button>
-      <button class="pill" role="tab" data-lang="en">English</button>
-      <button class="pill" role="tab" data-lang="ja">日本語</button>
-      <button class="pill" role="tab" data-lang="zh">中文</button>
+    <div class="views" id="views" role="tablist">
+      <button class="pill" role="tab" data-view="clock" data-i18n="clock">시계</button>
+      <button class="pill" role="tab" data-view="sw" data-i18n="stopwatch">스톱워치</button>
+      <button class="pill" role="tab" data-view="tm" data-i18n="timer">타이머</button>
+    </div>
+    <div class="right">
+      <div class="lang">
+        <button class="pill" id="lang-btn" aria-haspopup="listbox" aria-expanded="false">
+          <span id="lang-cur">한국어</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg>
+        </button>
+        <ul class="menu" id="lang-menu" role="listbox" hidden>
+          <li role="option" data-lang="ko">한국어</li>
+          <li role="option" data-lang="en">English</li>
+          <li role="option" data-lang="ja">日本語</li>
+          <li role="option" data-lang="zh">中文</li>
+        </ul>
+      </div>
+      <button class="pill close" id="full-toggle" aria-label="Fullscreen">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4v4M6 14H2v-4M14 2L9.5 6.5M2 14l4.5-4.5"/></svg>
+      </button>
     </div>
   </div>
 
   <main>
-    <section class="panel" id="p-clock">
-      <h2 data-i18n="clock">시계</h2>
+    <section class="panel" id="p-clock" data-key="clock">
+      <div class="head"><h2 data-i18n="clock">시계</h2></div>
       <div class="time" id="clock-time">--:--:--.---</div>
       <div class="sub" id="clock-date">&nbsp;</div>
       <div class="sub" id="clock-tz">&nbsp;</div>
@@ -30,8 +46,8 @@
       <div class="status" id="sync-status"></div>
     </section>
 
-    <section class="panel active" id="p-sw">
-      <h2 data-i18n="stopwatch">스톱워치</h2>
+    <section class="panel active" id="p-sw" data-key="sw">
+      <div class="head"><h2 data-i18n="stopwatch">스톱워치</h2></div>
       <div class="time" id="sw-time">00:00:00.000</div>
       <div class="row">
         <button class="pill main" id="sw-toggle" data-i18n="start">시작</button>
@@ -41,8 +57,8 @@
       <ol class="laps" id="sw-laps"></ol>
     </section>
 
-    <section class="panel" id="p-tm">
-      <h2 data-i18n="timer">타이머</h2>
+    <section class="panel" id="p-tm" data-key="tm">
+      <div class="head"><h2 data-i18n="timer">타이머</h2></div>
       <div class="time" id="tm-time">00:05:00.000</div>
       <div class="row inputs">
         <label><input id="tm-h" type="number" min="0" max="99" value="0"><span data-i18n="hours">시</span></label>
